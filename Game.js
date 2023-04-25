@@ -37,7 +37,7 @@ function preload ()
     this.load.image('background', 'assets/background.png');
     this.load.image('croissant', 'assets/cat.png');
     this.load.image('walker', 'assets/walker1.png');
-    this.load.image('clocktower', 'assets/clocktower1.png');
+    this.load.image('clocktower', 'assets/clocktower_base.png');
     this.load.spritesheet('clockface', 
     'assets/clockface_map.png',
     { frameWidth: 123, frameHeight: 119 }
