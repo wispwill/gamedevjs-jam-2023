@@ -18,9 +18,6 @@ var config = {
     height: gameheight,
     physics: {
         default: 'arcade',
-        arcade: {
-            gravity: { y: 200 }
-        }
     },
     scene: {
         preload: preload,
@@ -34,19 +31,21 @@ var game = new Phaser.Game(config);
 
 function preload ()
 {
+    //this.load.image('floor', 'assets/floor.png');
     this.load.image('background', 'assets/background.png');
-    this.load.image('croissant', 'assets/cat.png');
+    this.load.image('croissant', 'assets/croissant.png');
     this.load.image('walker', 'assets/walker1.png');
     this.load.image('clocktower', 'assets/clocktower_base.png');
     this.load.spritesheet('clockface', 
     'assets/clockface_map.png',
-    { frameWidth: 123, frameHeight: 119 }
-);
+    { frameWidth: 123, frameHeight: 119 });
 }
 
 function update (time, delta)
 {
     this.controls.update(delta);
+
+    this.physics.world.wrap(walker, 24);
 
     if (cursors.left.isDown)
     {
@@ -84,7 +83,8 @@ function chowdown (croissant, clockface)
 
 function create ()
 {
-    this.add.image(gamewidth/2, gameheight/2,'background');
+    background = this.add.image(gamewidth/2, gameheight/2,'background');
+    //floor = this.physics.add.image(gamewidth/2, gameheight + 10,'floor').setImmovable();
     scoreText = this.add.text(140, 65, 'Pastries Consumed: ' + points, { fontSize: '20px', fill: '#9c640c' });
     clocktower = this.add.image(gamewidth/2, (gameheight/2) + 100, 'clocktower');
     clockface = this.physics.add.sprite(gamewidth/2 + 2, (gameheight/2) - 6, 'clockface');
@@ -115,8 +115,8 @@ function create ()
 
     this.physics.world.setBounds(0, 0, gamewidth, gameheight);
 
-    croissant = this.physics.add.image(0, 0, 'croissant');
-    walker = this.physics.add.image(gamewidth/2, gameheight, 'walker').setScale(0.5);
+    croissant = this.physics.add.image(0, 0, 'croissant').setGravityY(200);
+    walker = this.physics.add.image(gamewidth/2, gameheight - 70, 'walker').setScale(0.5);
 
     croissant.setVelocity(200, 200);
     croissant.setBounce(1, 1);
@@ -124,7 +124,7 @@ function create ()
 
     walker.setVelocity(200, 0);
     walker.setBounce(1, 0);
-    walker.setCollideWorldBounds(true);
+    //walker.setCollideWorldBounds(true);
 
     this.physics.add.collider(croissant, walker);
     this.physics.add.overlap(croissant, clockface, chowdown, null, this);
