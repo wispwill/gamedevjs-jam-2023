@@ -1,9 +1,10 @@
-
+var scene;
 var controls;
 var points = 0;
 
 var croissant;
 var walkers;
+var clockface;
 
 var walkerVelocities = new Map();
 
@@ -29,6 +30,7 @@ var game = new Phaser.Game(config);
 
 function preload ()
 {
+    scene = this;
     this.load.image('background', 'assets/background.png');
     this.load.image('croissant', 'assets/croissant.png');
     this.load.image('walker', 'assets/walker1.png');
@@ -71,11 +73,25 @@ function chowdown (croissant, clockface)
     croissant.disableBody(true, true);
     points += 1;
     scoreText.setText('Pastries Consumed: ' + points)
-    this.tweens.add({
+    scene.tweens.add({
         targets: clockface, //your image that must spin
         rotation: 2 * Math.PI, //rotation value must be radian
         duration: 2000 //duration is in milliseconds
     });
+    newCroissant();
+}
+
+function newCroissant()
+{
+    croissant = scene.physics.add.image(0, 0, 'croissant').setGravityY(300);
+    croissant.setAngle(Math.floor(Math.random() * 360));
+    croissant.setVelocity(200, 200);
+    croissant.setBounce(1, 1);
+    croissant.setCollideWorldBounds(true);
+
+    scene.physics.add.collider(croissant, walkers);
+    scene.physics.add.overlap(croissant, clockface, chowdown, null, this);
+
 }
 
 function create ()
@@ -109,8 +125,6 @@ function create ()
     this.cameras.main.scrollY = gameheight/2;
 
     this.physics.world.setBounds(0, 0, gamewidth, gameheight);
-
-    croissant = this.physics.add.image(0, 0, 'croissant').setGravityY(300);
     walkers = this.physics.add.group({
         key: 'walker',
         velocityX: 200,
@@ -132,10 +146,15 @@ function create ()
         walker.setX(Math.floor(Math.random() * gamewidth) + 60)
     }
 
+    //newCroissant();
+
+    croissant = this.physics.add.image(0, 0, 'croissant').setGravityY(300);
+
     croissant.setVelocity(200, 200);
     croissant.setBounce(1, 1);
     croissant.setCollideWorldBounds(true);
 
     this.physics.add.collider(croissant, walkers);
     this.physics.add.overlap(croissant, clockface, chowdown, null, this);
+
 }
