@@ -3,11 +3,9 @@ var controls;
 var points = 0;
 
 var croissant;
-var walker;
+var walkers;
 
-var velocities = new Map([
-    ["walker", 160]
-])
+var walkerVelocities = new Map();
 
 var gamewidth = 1200;
 var gameheight = 800;
@@ -31,7 +29,6 @@ var game = new Phaser.Game(config);
 
 function preload ()
 {
-    //this.load.image('floor', 'assets/floor.png');
     this.load.image('background', 'assets/background.png');
     this.load.image('croissant', 'assets/croissant.png');
     this.load.image('walker', 'assets/walker1.png');
@@ -45,7 +42,7 @@ function update (time, delta)
 {
     this.controls.update(delta);
 
-    this.physics.world.wrap(walker, 24);
+    this.physics.world.wrap(walkers, 24);
 
     if (cursors.left.isDown)
     {
@@ -59,14 +56,14 @@ function update (time, delta)
 
 function reverseTime ()
 {
-    walker.setVelocityX(-(velocities.get("walker")));
-    clockface.anims.play('face_rotation', true);
+    //walkers.setVelocityX(-(walkerVelocities.get("walker")));
+    walkers.setVelocityX(-160);
 }
 
 function forwardTime ()
 {
-    walker.setVelocityX(velocities.get("walker"));
-    clockface.anims.play('face_rotation', true);
+    //walkers.setVelocityX(walkerVelocities.get("walker"));
+    walkers.setVelocityX(200);
 }
 
 function chowdown (croissant, clockface)
@@ -84,18 +81,16 @@ function chowdown (croissant, clockface)
 function create ()
 {
     background = this.add.image(gamewidth/2, gameheight/2,'background');
-    //floor = this.physics.add.image(gamewidth/2, gameheight + 10,'floor').setImmovable();
     scoreText = this.add.text(140, 65, 'Pastries Consumed: ' + points, { fontSize: '20px', fill: '#9c640c' });
     clocktower = this.add.image(gamewidth/2, (gameheight/2) + 100, 'clocktower');
     clockface = this.physics.add.sprite(gamewidth/2 + 2, (gameheight/2) - 6, 'clockface');
-    clockface.body.stop();
-    clockface.body.allowGravity = false;
     this.anims.create({
         key: 'face_rotation',
         frames: this.anims.generateFrameNumbers('clockface', { start: 0, end: 2 }),
         frameRate: 1,
         repeat: -1
     });
+    clockface.anims.play('face_rotation', true);
     
 
     cursors = this.input.keyboard.createCursorKeys();
@@ -115,17 +110,32 @@ function create ()
 
     this.physics.world.setBounds(0, 0, gamewidth, gameheight);
 
-    croissant = this.physics.add.image(0, 0, 'croissant').setGravityY(200);
-    walker = this.physics.add.image(gamewidth/2, gameheight - 70, 'walker').setScale(0.5);
+    croissant = this.physics.add.image(0, 0, 'croissant').setGravityY(300);
+    walkers = this.physics.add.group({
+        key: 'walker',
+        velocityX: 200,
+        setScale: 0.5,
+        frameQuantity: 5,
+        setXY: {
+            y: gameheight - 70,
+            stepX: Math.floor(Math.random() * 300) + 60,
+        },
+        setScale: {
+            x: 0.5,
+            y: 0.5
+        },
+        immovable: true
+    });
+
+    for (var walker of walkers.getChildren())
+    {
+        walker.setX(Math.floor(Math.random() * gamewidth) + 60)
+    }
 
     croissant.setVelocity(200, 200);
     croissant.setBounce(1, 1);
     croissant.setCollideWorldBounds(true);
 
-    walker.setVelocity(200, 0);
-    walker.setBounce(1, 0);
-    //walker.setCollideWorldBounds(true);
-
-    this.physics.add.collider(croissant, walker);
+    this.physics.add.collider(croissant, walkers);
     this.physics.add.overlap(croissant, clockface, chowdown, null, this);
 }
