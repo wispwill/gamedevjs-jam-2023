@@ -2,10 +2,17 @@ var scene;
 var controls;
 var points = 0;
 
+var fallsound;
+var backgroundsound;
+var bouncesound;
+var chompsound;
+
 var croissant;
 var walkers;
 var clockface;
 var birds;
+var rewindSign;
+var forwardSign;
 
 var walkerVelocities = new Map();
 
@@ -33,7 +40,14 @@ function preload ()
 {
     scene = this;
 
+    this.load.audio('fall', ['assets/sounds/fall.wav']);// sound by remaxim, from https://opengameart.org/content/falling-body, under Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) 
+    this.load.audio('background', ['assets/sounds/Happy walk.mp3']); //song by Johan Brodd, from https://opengameart.org/content/happy-walk, under GPL 3.0
+    this.load.audio('bounce', ['assets/sounds/bounce.mp3']);// sound by Lamoot and Blender Foundation, from https://opengameart.org/content/funny-comic-cartoon-bounce-sound, under CC-BY 3.0
+    this.load.audio('munch', ['assets/sounds/chomp.ogg']);// sound by AntumDeluge from https://opengameart.org/node/132358, under Creative Commons Zero (CC0)
+
     this.load.image('background', 'assets/background.png');
+    this.load.image('rewind', 'assets/rewind.png');
+    this.load.image('forward', 'assets/forward.png');
     this.load.image('croissant', 'assets/croissant.png');
     this.load.image('clocktower', 'assets/clocktower_base.png');
     
@@ -71,10 +85,23 @@ function update (time, delta)
     {
         reverseTime();
     }
+    if(croissant.body.blocked.down)
+    {
+        fallsound.play();
+        croissant.disableBody(true, true);
+        newCroissant();
+    }
 }
 
 function create ()
 {
+    fallsound = this.sound.add('fall', { loop: false });
+    backgroundsound = this.sound.add('background', { loop: true });
+    bouncesound = this.sound.add('bounce', { loop: false });
+    munchsound = this.sound.add('munch', { loop: false });
+
+    backgroundsound.play();
+
     background = this.add.image(gamewidth/2, gameheight/2,'background');
     scoreText = this.add.text(140, 65, 'Pastries Consumed: ' + points, { fontSize: '20px', fill: '#9c640c' });
     clocktower = this.add.image(gamewidth/2, (gameheight/2) + 100, 'clocktower');
@@ -86,6 +113,9 @@ function create ()
         repeat: -1
     });
     clockface.anims.play('face_rotation', true);
+
+    rewindSign = this.add.image(900, gameheight/2 - 100,'rewind').setVisible(false);
+    forwardSign = this.add.image(300, gameheight/2 - 100,'forward').setVisible(true);
     
 
     cursors = this.input.keyboard.createCursorKeys();
@@ -148,7 +178,7 @@ function create ()
     newCroissant();
 
     birds = scene.physics.add.sprite(500, 200, 'birds');
-    birds.setVelocity(150, 0);
+    birds.setVelocity(-100, 0);
     birds.setBounce(1, 1);
     birds.setImmovable(true);
     this.anims.create({
@@ -163,13 +193,24 @@ function create ()
 function reverseTime ()
 {
     //walkers.setVelocityX(-(walkerVelocities.get("walker")));
-    walkers.setVelocityX(-160);
+    walkers.setVelocityX(-200);
+    birds.setVelocityX(100);
+    rewindSign.setVisible(true);
+    forwardSign.setVisible(false);
 }
 
 function forwardTime ()
 {
     //walkers.setVelocityX(walkerVelocities.get("walker"));
     walkers.setVelocityX(200);
+    birds.setVelocityX(-100);
+    rewindSign.setVisible(false);
+    forwardSign.setVisible(true);
+}
+
+function clickClock()
+{
+    
 }
 
 function chowdown (croissant, clockface)
@@ -177,12 +218,18 @@ function chowdown (croissant, clockface)
     croissant.disableBody(true, true);
     points += 1;
     scoreText.setText('Pastries Consumed: ' + points)
+    munchsound.play();
     scene.tweens.add({
-        targets: clockface, //your image that must spin
-        rotation: 2 * Math.PI, //rotation value must be radian
-        duration: 2000 //duration is in milliseconds
+        targets: clockface,
+        rotation: 2 * Math.PI,
+        duration: 2000
     });
     newCroissant();
+}
+
+function bounce()
+{
+    bouncesound.play();
 }
 
 function newCroissant()
@@ -190,11 +237,11 @@ function newCroissant()
     croissant = scene.physics.add.image(0, 0, 'croissant').setGravityY(300);
     croissant.setAngle(Math.floor(Math.random() * 360));
     croissant.setVelocity(200, 200);
-    croissant.setBounce(1, 1);
+    croissant.setBounce(0.9, 0.9);
     croissant.setCollideWorldBounds(true);
 
-    scene.physics.add.collider(croissant, walkers);
-    scene.physics.add.collider(croissant, birds);
+    scene.physics.add.collider(croissant, walkers, bounce, null, this);
+    scene.physics.add.collider(croissant, birds, bounce, null, this);
     scene.physics.add.overlap(croissant, clockface, chowdown, null, this);
 
 }
