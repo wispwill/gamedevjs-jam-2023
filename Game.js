@@ -135,10 +135,11 @@ function create ()
     background = this.add.image(gamewidth/2, gameheight/2,'background');
     clocktower = this.add.image(gamewidth/2, (gameheight/2) + 100, 'clocktower');
 
-    rewindSign = this.add.image(900, gameheight/2 - 100,'rewind').setVisible(false);
+    rewindSign = this.add.image(900, gameheight/2 - 50,'rewind').setVisible(false);
     forwardSign = this.add.image(300, gameheight/2 - 100,'forward').setVisible(true);
 
     scoreText = this.add.text(140, 65, 'Pastries Consumed: ' + points, { fontSize: '20px', fill: '#9c640c' });
+    this.add.text(820, gameheight/2 - 270, 'Click the Clock Face \nto Reverse Time!', { fontSize: '14px', fill: '#9c640c' });
 
     //CLOCK FACE - add animation and interactive clicks
     //time flip is triggered by clicking the clock or hitting arrow keys
